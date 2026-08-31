@@ -1,5 +1,5 @@
 ---
-title: "Week_1_Assignment_Cecilia_DeLaFuenteChavez"
+title: "Week1Assignment_Cecilia_DeLaFuenteChavez"
 author: "Cecilia_DeLaFuenteChavez"
 format: html
 editor: visual
