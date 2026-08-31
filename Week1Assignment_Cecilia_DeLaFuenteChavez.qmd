@@ -1,6 +1,6 @@
 ---
-title: "Week1Assignment_Cecilia_DeLaFuenteChavez"
-author: "Cecilia_DeLaFuenteChavez"
+title: "Week 1 Assignment"
+author: "Cecilia De La Fuente Chavez"
 format: html
 editor: visual
 ---
