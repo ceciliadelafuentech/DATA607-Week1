@@ -2,9 +2,94 @@
 title: "Week 1 Assignment"
 author: "Cecilia De La Fuente Chavez"
 format: html
+execute:
+  echo: true
 editor: visual
 ---
 
-## Overview
+## Approach Deliverable
 
-For the Week 1 Assignment, I will be using the [U.S. Energy Information Administration's](https://www.eia.gov/renewable/data.php) *Total energy consumption of renewable and nonrenewable energy sources* data set to examine how the consumption of energy from different sources (Coal, Natural Gas, Petroleum, Nuclear, Hydroelectric, Geothermal, Solar, Wind, Energy, and Biomass) has changed over the years. The data set is an Excel file with two tabs; one with monthly data from 1973 until 2026, and the other annual data from 1949 until 2025. I expect to use the variables related to time; year and possibly month, as well as the different energy sources by type; renewable and non-renewable. I anticipate potentially transforming the data by changing the energy consumption units, currently Quadrillion Btu, to percentages of the total to make it easier to visualize, as well as adding a new column to categorize each energy source by their type for better filtering between renewable and non-renewable sources. My interest in decarbonization efforts in my motivation for selecting this particular data set.
+### Overview
+
+For the Week 1 Assignment, I will be using the [U.S. Energy Information Administration's](https://www.eia.gov/renewable/data.php) *Total energy consumption of renewable and nonrenewable energy sources* data set to examine how the consumption of energy from different sources (Coal, Natural Gas, Petroleum, Nuclear, Hydroelectric, Geothermal, Solar, Wind, Energy, and Biomass) has changed over the years. The dataset is an Excel file with two tabs; one with monthly data from 1973 until 2026, and the other annual data from 1949 until 2025. I expect to use the variables related to time; year and possibly month, as well as the different energy sources by type; renewable and non-renewable. I anticipate potentially transforming the data by changing the energy consumption units, currently Quadrillion Btu, to percentages of the total to make it easier to visualize, as well as adding a new column to categorize each energy source by their type for better filtering between renewable and non-renewable sources. My interest in decarbonization efforts in my motivation for selecting this particular data set.
+
+## Code Base Deliverable
+
+### Load library
+
+For this exercise, I only used the tidyverse library.
+
+```{r}
+library(tidyverse)
+```
+
+### Read data from GitHub
+
+Original file is a xlsx with two tabs. I saved the "Annual Data" as a csv and stored it on GitHub, I used the skip argument in the read_csv() function to omit the first rows of metadata.
+
+```{r}
+url <- "https://raw.githubusercontent.com/ceciliadelafuentech/DATA607-Week1/refs/heads/main/data/Table_1.3_Primary_Energy_Consumption_by_Source_Annual_Data.csv"
+
+df <- read_csv(
+  file = url,
+  show_col_types = FALSE,
+  progress = FALSE, 
+  skip = 10
+)
+glimpse(df)
+```
+
+### Cleaning and transformation process
+
+I used row indexing to remove the first row after headers which was unnecessary for this analysis, and saved the updated dataframe to a new one called df_clean.
+
+```{r}
+df_clean <- df[-1,]
+glimpse(df_clean)
+```
+
+I renamed the "Annual Total" column header to "Year" to more accurately reflect its values.
+
+```{r}
+df_clean <- rename(df_clean, `Year` = `Annual Total`)
+glimpse(df_clean)
+```
+
+I noticed the dataframe values important for the analysis were characters, so I used mutate() to modify the columns, across() to select the columns, where(is.character) to find the ones in which the values were characters and convert them into numeric with as.numeric.
+
+```{r}
+df_clean <- df_clean %>% 
+  mutate(across(where(is.character), as.numeric))
+glimpse(df_clean)
+```
+
+Several rows of values in a couple of columns were "Not available", for example in the "Solar Energy Consumption" column. This text value converted into NA because of the previous function. Because these values are needed for calculations I used is.na() to find NA values and replace them with 0.
+
+```{r}
+df_clean[is.na(df_clean)] <- 0
+glimpse(df_clean)
+```
+
+I used mutate() to create two new columns to calculate renewable and non-renewable energy consumption as a percentage of the total energy consumption, making it easier to visualize trends.
+
+```{r}
+df_clean <- df_clean %>% 
+  mutate(
+    `Renewable Percent` = `Total Renewable Energy Consumption`/`Total Primary Energy Consumption` * 100,
+    `Non-Renewable Percent` = (`Nuclear Electric Power Consumption` + `Total Fossil Fuels Consumption`)/`Total Primary Energy Consumption` * 100
+)
+glimpse(df_clean)
+```
+
+### Visual
+
+The line graph shows the percentage of total energy consumption from renewable sources over time (1949-2025). There have been fluctuations over the decades, followed by an upward trend from 2000 to 2025.
+
+```{r}
+ggplot(data=df_clean,aes(x=`Year`,y=`Renewable Percent`))+
+  geom_line()
+```
+
+### Conclusions
+
+This initial analysis shows how the percentage of energy consumption from renewable sources has fluctuated and increased over time. I would continue analyzing this data by comparing the trend of non-renewable sources, as well as looking at individual sources (solar, wind, etc) to gain a better understanding of these changes and identify possible contributing factors.
