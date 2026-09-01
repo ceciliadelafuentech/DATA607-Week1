@@ -24,6 +24,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -73,9 +108,213 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="overview" class="level2">
-<h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>For the Week 1 Assignment, I will be using the <a href="https://www.eia.gov/renewable/data.php">U.S. Energy Information Administration’s</a> <em>Total energy consumption of renewable and nonrenewable energy sources</em> data set to examine how the consumption of energy from different sources (Coal, Natural Gas, Petroleum, Nuclear, Hydroelectric, Geothermal, Solar, Wind, Energy, and Biomass) has changed over the years. The data set is an Excel file with two tabs; one with monthly data from 1973 until 2026, and the other annual data from 1949 until 2025. I expect to use the variables related to time; year and possibly month, as well as the different energy sources by type; renewable and non-renewable. I anticipate potentially transforming the data by changing the energy consumption units, currently Quadrillion Btu, to percentages of the total to make it easier to visualize, as well as adding a new column to categorize each energy source by their type for better filtering between renewable and non-renewable sources. My interest in decarbonization efforts in my motivation for selecting this particular data set.</p>
+<section id="approach-deliverable" class="level2">
+<h2 class="anchored" data-anchor-id="approach-deliverable">Approach Deliverable</h2>
+<section id="overview" class="level3">
+<h3 class="anchored" data-anchor-id="overview">Overview</h3>
+<p>For the Week 1 Assignment, I will be using the <a href="https://www.eia.gov/renewable/data.php">U.S. Energy Information Administration’s</a> <em>Total energy consumption of renewable and nonrenewable energy sources</em> data set to examine how the consumption of energy from different sources (Coal, Natural Gas, Petroleum, Nuclear, Hydroelectric, Geothermal, Solar, Wind, Energy, and Biomass) has changed over the years. The dataset is an Excel file with two tabs; one with monthly data from 1973 until 2026, and the other annual data from 1949 until 2025. I expect to use the variables related to time; year and possibly month, as well as the different energy sources by type; renewable and non-renewable. I anticipate potentially transforming the data by changing the energy consumption units, currently Quadrillion Btu, to percentages of the total to make it easier to visualize, as well as adding a new column to categorize each energy source by their type for better filtering between renewable and non-renewable sources. My interest in decarbonization efforts in my motivation for selecting this particular data set.</p>
+</section>
+</section>
+<section id="code-base-deliverable" class="level2">
+<h2 class="anchored" data-anchor-id="code-base-deliverable">Code Base Deliverable</h2>
+<section id="load-library" class="level3">
+<h3 class="anchored" data-anchor-id="load-library">Load library</h3>
+<p>For this exercise, I only used the tidyverse library.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.2.1     ✔ readr     2.2.0
+✔ forcats   1.0.1     ✔ stringr   1.6.0
+✔ ggplot2   4.0.3     ✔ tibble    3.3.1
+✔ lubridate 1.9.5     ✔ tidyr     1.3.2
+✔ purrr     1.2.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+</div>
+</section>
+<section id="read-data-from-github" class="level3">
+<h3 class="anchored" data-anchor-id="read-data-from-github">Read data from GitHub</h3>
+<p>Original file is a xlsx with two tabs. I saved the “Annual Data” as a csv and stored it on GitHub, I used the skip argument in the read_csv() function to omit the first rows of metadata.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/ceciliadelafuentech/DATA607-Week1/refs/heads/main/data/Table_1.3_Primary_Energy_Consumption_by_Source_Annual_Data.csv"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> url,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">progress =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">skip =</span> <span class="dv">10</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 78
+Columns: 13
+$ `Annual Total`                                                   &lt;dbl&gt; NA, 1…
+$ `Coal Consumption`                                               &lt;chr&gt; "(Qua…
+$ `Natural Gas Consumption (Excluding Supplemental Gaseous Fuels)` &lt;chr&gt; "(Qua…
+$ `Petroleum Consumption (Excluding Biofuels)`                     &lt;chr&gt; "(Qua…
+$ `Total Fossil Fuels Consumption`                                 &lt;chr&gt; "(Qua…
+$ `Nuclear Electric Power Consumption`                             &lt;chr&gt; "(Qua…
+$ `Hydroelectric Power Consumption`                                &lt;chr&gt; "(Qua…
+$ `Geothermal Energy Consumption`                                  &lt;chr&gt; "(Qua…
+$ `Solar Energy Consumption`                                       &lt;chr&gt; "(Qua…
+$ `Wind Energy Consumption`                                        &lt;chr&gt; "(Qua…
+$ `Biomass Energy Consumption`                                     &lt;chr&gt; "(Qua…
+$ `Total Renewable Energy Consumption`                             &lt;chr&gt; "(Qua…
+$ `Total Primary Energy Consumption`                               &lt;chr&gt; "(Qua…</code></pre>
+</div>
+</div>
+</section>
+<section id="cleaning-and-transformation-process" class="level3">
+<h3 class="anchored" data-anchor-id="cleaning-and-transformation-process">Cleaning and transformation process</h3>
+<p>I used row indexing to remove the first row after headers which was unnecessary for this analysis, and saved the updated dataframe to a new one called df_clean.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>df_clean <span class="ot">&lt;-</span> df[<span class="sc">-</span><span class="dv">1</span>,]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(df_clean)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 77
+Columns: 13
+$ `Annual Total`                                                   &lt;dbl&gt; 1949,…
+$ `Coal Consumption`                                               &lt;chr&gt; "11.9…
+$ `Natural Gas Consumption (Excluding Supplemental Gaseous Fuels)` &lt;chr&gt; "5.14…
+$ `Petroleum Consumption (Excluding Biofuels)`                     &lt;chr&gt; "11.8…
+$ `Total Fossil Fuels Consumption`                                 &lt;chr&gt; "28.9…
+$ `Nuclear Electric Power Consumption`                             &lt;chr&gt; "0", …
+$ `Hydroelectric Power Consumption`                                &lt;chr&gt; "0.32…
+$ `Geothermal Energy Consumption`                                  &lt;chr&gt; "Not …
+$ `Solar Energy Consumption`                                       &lt;chr&gt; "Not …
+$ `Wind Energy Consumption`                                        &lt;chr&gt; "Not …
+$ `Biomass Energy Consumption`                                     &lt;chr&gt; "1.54…
+$ `Total Renewable Energy Consumption`                             &lt;chr&gt; "1.87…
+$ `Total Primary Energy Consumption`                               &lt;chr&gt; "30.8…</code></pre>
+</div>
+</div>
+<p>I renamed the “Annual Total” column header to “Year” to more accurately reflect its values.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>df_clean <span class="ot">&lt;-</span> <span class="fu">rename</span>(df_clean, <span class="st">`</span><span class="at">Year</span><span class="st">`</span> <span class="ot">=</span> <span class="st">`</span><span class="at">Annual Total</span><span class="st">`</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(df_clean)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 77
+Columns: 13
+$ Year                                                             &lt;dbl&gt; 1949,…
+$ `Coal Consumption`                                               &lt;chr&gt; "11.9…
+$ `Natural Gas Consumption (Excluding Supplemental Gaseous Fuels)` &lt;chr&gt; "5.14…
+$ `Petroleum Consumption (Excluding Biofuels)`                     &lt;chr&gt; "11.8…
+$ `Total Fossil Fuels Consumption`                                 &lt;chr&gt; "28.9…
+$ `Nuclear Electric Power Consumption`                             &lt;chr&gt; "0", …
+$ `Hydroelectric Power Consumption`                                &lt;chr&gt; "0.32…
+$ `Geothermal Energy Consumption`                                  &lt;chr&gt; "Not …
+$ `Solar Energy Consumption`                                       &lt;chr&gt; "Not …
+$ `Wind Energy Consumption`                                        &lt;chr&gt; "Not …
+$ `Biomass Energy Consumption`                                     &lt;chr&gt; "1.54…
+$ `Total Renewable Energy Consumption`                             &lt;chr&gt; "1.87…
+$ `Total Primary Energy Consumption`                               &lt;chr&gt; "30.8…</code></pre>
+</div>
+</div>
+<p>I noticed the dataframe values important for the analysis were characters, so I used mutate() to modify the columns, across() to select the columns, where(is.character) to find the ones in which the values were characters and convert them into numeric with as.numeric.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>df_clean <span class="ot">&lt;-</span> df_clean <span class="sc">%&gt;%</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.character), as.numeric))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: There were 3 warnings in `mutate()`.
+The first warning was:
+ℹ In argument: `across(where(is.character), as.numeric)`.
+Caused by warning:
+! NAs introduced by coercion
+ℹ Run `dplyr::last_dplyr_warnings()` to see the 2 remaining warnings.</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(df_clean)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 77
+Columns: 13
+$ Year                                                             &lt;dbl&gt; 1949,…
+$ `Coal Consumption`                                               &lt;dbl&gt; 11.98…
+$ `Natural Gas Consumption (Excluding Supplemental Gaseous Fuels)` &lt;dbl&gt; 5.145…
+$ `Petroleum Consumption (Excluding Biofuels)`                     &lt;dbl&gt; 11.86…
+$ `Total Fossil Fuels Consumption`                                 &lt;dbl&gt; 28.98…
+$ `Nuclear Electric Power Consumption`                             &lt;dbl&gt; 0.000…
+$ `Hydroelectric Power Consumption`                                &lt;dbl&gt; 0.323…
+$ `Geothermal Energy Consumption`                                  &lt;dbl&gt; NA, N…
+$ `Solar Energy Consumption`                                       &lt;dbl&gt; NA, N…
+$ `Wind Energy Consumption`                                        &lt;dbl&gt; NA, N…
+$ `Biomass Energy Consumption`                                     &lt;dbl&gt; 1.549…
+$ `Total Renewable Energy Consumption`                             &lt;dbl&gt; 1.872…
+$ `Total Primary Energy Consumption`                               &lt;dbl&gt; 30.86…</code></pre>
+</div>
+</div>
+<p>Several rows of values in a couple of columns were “Not available”, for example in the “Solar Energy Consumption” column. This text value converted into NA because of the previous function. Because these values are needed for calculations I used is.na() to find NA values and replace them with 0.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>df_clean[<span class="fu">is.na</span>(df_clean)] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(df_clean)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 77
+Columns: 13
+$ Year                                                             &lt;dbl&gt; 1949,…
+$ `Coal Consumption`                                               &lt;dbl&gt; 11.98…
+$ `Natural Gas Consumption (Excluding Supplemental Gaseous Fuels)` &lt;dbl&gt; 5.145…
+$ `Petroleum Consumption (Excluding Biofuels)`                     &lt;dbl&gt; 11.86…
+$ `Total Fossil Fuels Consumption`                                 &lt;dbl&gt; 28.98…
+$ `Nuclear Electric Power Consumption`                             &lt;dbl&gt; 0.000…
+$ `Hydroelectric Power Consumption`                                &lt;dbl&gt; 0.323…
+$ `Geothermal Energy Consumption`                                  &lt;dbl&gt; 0.000…
+$ `Solar Energy Consumption`                                       &lt;dbl&gt; 0, 0,…
+$ `Wind Energy Consumption`                                        &lt;dbl&gt; 0, 0,…
+$ `Biomass Energy Consumption`                                     &lt;dbl&gt; 1.549…
+$ `Total Renewable Energy Consumption`                             &lt;dbl&gt; 1.872…
+$ `Total Primary Energy Consumption`                               &lt;dbl&gt; 30.86…</code></pre>
+</div>
+</div>
+<p>I used mutate() to create two new columns to calculate renewable and non-renewable energy consumption as a percentage of the total energy consumption, making it easier to visualize trends.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>df_clean <span class="ot">&lt;-</span> df_clean <span class="sc">%&gt;%</span> </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Renewable Percent</span><span class="st">`</span> <span class="ot">=</span> <span class="st">`</span><span class="at">Total Renewable Energy Consumption</span><span class="st">`</span><span class="sc">/</span><span class="st">`</span><span class="at">Total Primary Energy Consumption</span><span class="st">`</span> <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Non-Renewable Percent</span><span class="st">`</span> <span class="ot">=</span> (<span class="st">`</span><span class="at">Nuclear Electric Power Consumption</span><span class="st">`</span> <span class="sc">+</span> <span class="st">`</span><span class="at">Total Fossil Fuels Consumption</span><span class="st">`</span>)<span class="sc">/</span><span class="st">`</span><span class="at">Total Primary Energy Consumption</span><span class="st">`</span> <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(df_clean)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 77
+Columns: 15
+$ Year                                                             &lt;dbl&gt; 1949,…
+$ `Coal Consumption`                                               &lt;dbl&gt; 11.98…
+$ `Natural Gas Consumption (Excluding Supplemental Gaseous Fuels)` &lt;dbl&gt; 5.145…
+$ `Petroleum Consumption (Excluding Biofuels)`                     &lt;dbl&gt; 11.86…
+$ `Total Fossil Fuels Consumption`                                 &lt;dbl&gt; 28.98…
+$ `Nuclear Electric Power Consumption`                             &lt;dbl&gt; 0.000…
+$ `Hydroelectric Power Consumption`                                &lt;dbl&gt; 0.323…
+$ `Geothermal Energy Consumption`                                  &lt;dbl&gt; 0.000…
+$ `Solar Energy Consumption`                                       &lt;dbl&gt; 0, 0,…
+$ `Wind Energy Consumption`                                        &lt;dbl&gt; 0, 0,…
+$ `Biomass Energy Consumption`                                     &lt;dbl&gt; 1.549…
+$ `Total Renewable Energy Consumption`                             &lt;dbl&gt; 1.872…
+$ `Total Primary Energy Consumption`                               &lt;dbl&gt; 30.86…
+$ `Renewable Percent`                                              &lt;dbl&gt; 6.066…
+$ `Non-Renewable Percent`                                          &lt;dbl&gt; 93.91…</code></pre>
+</div>
+</div>
+</section>
+<section id="visual" class="level3">
+<h3 class="anchored" data-anchor-id="visual">Visual</h3>
+<p>The line graph shows the percentage of total energy consumption from renewable sources over time (1949-2025). There have been fluctuations over the decades, followed by an upward trend from 2000 to 2025.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>df_clean,<span class="fu">aes</span>(<span class="at">x=</span><span class="st">`</span><span class="at">Year</span><span class="st">`</span>,<span class="at">y=</span><span class="st">`</span><span class="at">Renewable Percent</span><span class="st">`</span>))<span class="sc">+</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Assignment1_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="conclusions" class="level3">
+<h3 class="anchored" data-anchor-id="conclusions">Conclusions</h3>
+<p>This initial analysis shows how the percentage of energy consumption from renewable sources has fluctuated and increased over time. I would continue analyzing this data by comparing the trend of non-renewable sources, as well as looking at individual sources (solar, wind, etc) to gain a better understanding of these changes and identify possible contributing factors.</p>
+</section>
 </section>
 
 </main>
